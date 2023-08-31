@@ -11,7 +11,7 @@ const uint16_t FAST_BLINK_DURATION = 100;
 const uint16_t LOOP_DURATION = 100;
 
 const uint16_t BUTTON_PRESS_DELAY = 200;
-const uint8_t NUM_MODES = 4;
+const uint8_t NUM_MODES = 5;
 
 uint32_t last_button_press;
 uint32_t blink_time;
@@ -39,13 +39,13 @@ void loop() {
     light_mode = light_mode % NUM_MODES;
     last_button_press = t;
   }
-  last_button_state = button_state;
-
+  last_button_state = button_state;  
   switch(light_mode) {
     case 0: set_all_lights(LOW); break;
     case 1: blink_lights(t, SLOW_BLINK_DURATION); break;
     case 2: blink_lights(t, FAST_BLINK_DURATION); break;
     case 3: loop_lights(t); break;
+    case 4: bounce_lights(t); break;
   }
 }
 
@@ -71,6 +71,25 @@ void loop_lights(uint32_t t) {
   if (t >= blink_time + LOOP_DURATION) {
     active_light_loop ++;
     active_light_loop = active_light_loop % 5;
+    blink_time = t;
+  }
+}
+
+uint8_t bounce_light = 0;
+bool ascending = true;
+void bounce_lights(uint32_t t) {
+  set_all_lights(LOW);
+  digitalWrite(lights[bounce_light], HIGH);
+  if (t >= blink_time + LOOP_DURATION) {
+    switch(bounce_light) {
+      case 0: ascending = true; break;
+      case 4: ascending = false; break;
+    }
+    if (ascending) {
+      bounce_light ++;
+    } else {
+      bounce_light --;
+    }
     blink_time = t;
   }
 }
