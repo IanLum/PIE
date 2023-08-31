@@ -40,28 +40,23 @@ void loop() {
   last_button_state = button_state;
 
   switch(light_mode) {
-    case 0: lights_off(); break;
+    case 0: set_all_lights(LOW); break;
     case 1: blink_lights(t, SLOW_BLINK_DURATION); break;
     case 2: blink_lights(t, FAST_BLINK_DURATION); break;
   }
 }
 
-void blink_lights(uint32_t t, uint16_t blink_duration) {
-  if (t >= blink_time + blink_duration) {
-    bool state = !digitalRead(LED1);
-    digitalWrite(LED1, state);
-    digitalWrite(LED2, state);
-    digitalWrite(LED3, state);
-    digitalWrite(LED4, state);
-    digitalWrite(LED5, state);
-    blink_time = t;
-  }
+void set_all_lights(bool state) {
+  digitalWrite(LED1, state);
+  digitalWrite(LED2, state);
+  digitalWrite(LED3, state);
+  digitalWrite(LED4, state);
+  digitalWrite(LED5, state);
 }
 
-void lights_off() {
-  digitalWrite(LED1, LOW);
-  digitalWrite(LED2, LOW);
-  digitalWrite(LED3, LOW);
-  digitalWrite(LED4, LOW);
-  digitalWrite(LED5, LOW);
+void blink_lights(uint32_t t, uint16_t blink_duration) {
+  if (t >= blink_time + blink_duration) {
+    set_all_lights(!digitalRead(LED1));
+    blink_time = t;
+  }
 }
