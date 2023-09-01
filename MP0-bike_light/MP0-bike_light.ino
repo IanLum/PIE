@@ -32,14 +32,7 @@ void setup() {
 void loop() {
   uint32_t t;
   t = millis();
-
-  bool button_state = digitalRead(BUTTON);
-  if (button_state == HIGH && last_button_state == LOW && t >= last_button_press + BUTTON_PRESS_DELAY) {
-    light_mode ++;
-    light_mode = light_mode % NUM_MODES;
-    last_button_press = t;
-  }
-  last_button_state = button_state;  
+  detect_button_press(t);
   switch(light_mode) {
     case 0: set_all_lights(LOW); break;
     case 1: blink_lights(t, SLOW_BLINK_DURATION); break;
@@ -47,6 +40,16 @@ void loop() {
     case 3: loop_lights(t); break;
     case 4: bounce_lights(t); break;
   }
+}
+
+void detect_button_press(uint32_t t) {
+  bool button_state = digitalRead(BUTTON);
+  if (button_state == HIGH && last_button_state == LOW && t >= last_button_press + BUTTON_PRESS_DELAY) {
+    light_mode ++;
+    light_mode = light_mode % NUM_MODES;
+    last_button_press = t;
+  }
+  last_button_state = button_state; 
 }
 
 void set_all_lights(bool state) {
@@ -64,31 +67,30 @@ void blink_lights(uint32_t t, uint16_t blink_duration) {
   }
 }
 
-uint8_t active_light_loop = 0;
+uint8_t active_light = 0;
 void loop_lights(uint32_t t) {
   set_all_lights(LOW);
-  digitalWrite(lights[active_light_loop], HIGH);
+  digitalWrite(lights[active_light], HIGH);
   if (t >= blink_time + LOOP_DURATION) {
-    active_light_loop ++;
-    active_light_loop = active_light_loop % 5;
+    active_light ++;
+    active_light = active_light % 5;
     blink_time = t;
   }
 }
 
-uint8_t bounce_light = 0;
 bool ascending = true;
 void bounce_lights(uint32_t t) {
   set_all_lights(LOW);
-  digitalWrite(lights[bounce_light], HIGH);
+  digitalWrite(lights[active_light], HIGH);
   if (t >= blink_time + LOOP_DURATION) {
-    switch(bounce_light) {
+    switch(active_light) {
       case 0: ascending = true; break;
       case 4: ascending = false; break;
     }
     if (ascending) {
-      bounce_light ++;
+      active_light ++;
     } else {
-      bounce_light --;
+      active_light --;
     }
     blink_time = t;
   }
