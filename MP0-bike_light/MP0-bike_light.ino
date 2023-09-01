@@ -5,6 +5,7 @@ const uint8_t LED3 = 11;
 const uint8_t LED4 = 10;
 const uint8_t LED5 = 9;
 const uint8_t BUTTON = 8;
+const uint8_t POT = A0;
 uint8_t lights[5] = {LED1, LED2, LED3, LED4, LED5};
 
 // Set durations (in ms) of various light modes
@@ -25,6 +26,9 @@ uint32_t blink_time;
 // Tracks the light mode
 uint8_t light_mode = 0;
 
+// Modifies the speed of all modes
+float speed_multiplier;
+
 void setup() {
   Serial.begin(9600);
   pinMode(LED1, OUTPUT);
@@ -39,6 +43,8 @@ void loop() {
   uint32_t t = millis();
   // Update light_mode if button is pressed
   detect_button_press(t);
+  // Update speed multiplier
+  read_pot();
   // Match light mode to various light mode functions
   switch(light_mode) {
     case 0: set_all_lights(LOW); break;
@@ -63,6 +69,13 @@ void detect_button_press(uint32_t t) {
   last_button_state = button_state; 
 }
 
+// Set the speed multiplier based on the potentiometer
+void read_pot() {
+  // Reads the potentiometer as a value between 0 and 1024
+  // Normalize to 0 to 2: zero times the wait duration or double the wait duration
+  speed_multiplier = analogRead(A0) / 512.;
+}
+
 // Set LED 1, 2, 3, 4, and 5 the same state
 void set_all_lights(bool state) {
   digitalWrite(LED1, state);
@@ -75,7 +88,7 @@ void set_all_lights(bool state) {
 // Blink all lights with a given wait duration
 void blink_lights(uint32_t t, uint16_t blink_duration) {
   // If the lights haven't blinked for the blink duration
-  if (t >= blink_time + blink_duration) {
+  if (t >= blink_time + blink_duration * speed_multiplier) {
     // Turn the lights on if off, off if on
     set_all_lights(!digitalRead(LED1));
     blink_time = t;
@@ -90,7 +103,7 @@ void loop_lights(uint32_t t) {
   // Turn on the active light by idx in the lights array
   digitalWrite(lights[active_light], HIGH);
   // If the active light hasn't changed for the LOOP_DURATION, set the next light to active
-  if (t >= blink_time + LOOP_DURATION) {
+  if (t >= blink_time + LOOP_DURATION * speed_multiplier) {
     // Tick the active light idx by 1, mod 5
     active_light ++;
     active_light = active_light % 5;
@@ -106,7 +119,7 @@ void bounce_lights(uint32_t t) {
   // Turn on the active light by idx in the lights array
   digitalWrite(lights[active_light], HIGH);
   // If the active light hasn't changed for the LOOP_DURATION, set the next light to active
-  if (t >= blink_time + LOOP_DURATION) {
+  if (t >= blink_time + LOOP_DURATION * speed_multiplier) {
     // If the active light is at the lower end, begin ascending, if the active light is at the upper end, begin descending
     switch(active_light) {
       case 0: ascending = true; break;
