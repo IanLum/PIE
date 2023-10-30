@@ -1,2 +1,2 @@
 # PIE
-Repo for the class Principles of Integrated Engineering (PIE)
+Repo Principles of Integrated Engineering (PIE) Mini Project 1 - Bike Light
